@@ -61,7 +61,11 @@ from pathlib import Path
 from crewai import Crew, Process
 
 from crew.workflow import build_tasks, include_data, workflow_steps
+from crew.pull_request import (
+    pr_enabled, publish_pull_request, collect_files, parse_pr_text, chapter_verdict,
+)
 from agents.architect import agent as architect_agent
+from agents.pr_manager import agent as pr_agent, build_task as build_pr_task
 
 # ── MCP clients ────────────────────────────────────────────────────
 from mcp_projects import (
@@ -858,6 +862,44 @@ def build_context_note(approved_outputs: dict) -> str:
     return "\n\n---\n## Contexto de pasos anteriores\n\n" + "\n\n".join(parts)
 
 
+def open_pull_request(feature: dict, approved_outputs: dict, checkpoint: dict) -> None:
+    """Redacta el PR con el agente, pide aprobación humana y lo publica en el repo del producto."""
+    if checkpoint.get("pr_url"):
+        print(f"\n🔗 PR ya abierto: {checkpoint['pr_url']}")
+        return
+
+    files = collect_files(OUTPUT_DIR)
+    chapter_raw = approved_outputs.get("chapter", "")
+    verdict = chapter_verdict(str(getattr(chapter_raw, "raw", chapter_raw) or ""))
+
+    print(f"\n{'─'*60}\n▶ PASO: Pull Request\n{'─'*60}")
+    feedback = ""
+    while True:
+        task = build_pr_task(feature, files, verdict)
+        task.description += build_context_note(approved_outputs)
+        if feedback:
+            task.description += f"\n\n---\n## CORRECCIONES DEL USUARIO (máxima prioridad):\n{feedback}\n"
+        text = run_step(pr_agent, task)
+        decision, feedback = hitl_approve("Pull Request (se publicará al aprobar)", text)
+        if decision == "s":
+            break
+        if decision == "n":
+            print("\n❌ PR cancelado. Nada fue publicado.")
+            return
+        print("\n🔄 Reintentando la redacción del PR...")
+
+    title, body = parse_pr_text(text, f"CrewAI: {feature['title']}")
+    draft = verdict != "APROBADO"
+    try:
+        url = publish_pull_request(OUTPUT_DIR, feature["title"], title, body, draft)
+    except RuntimeError as exc:
+        print(f"\n❌ No se pudo publicar el PR: {exc}")
+        raise SystemExit(1)
+    checkpoint["pr_url"] = url
+    save_checkpoint(checkpoint)
+    print(f"\n🔗 PR {'(borrador) ' if draft else ''}abierto: {url}")
+
+
 
 # ═══════════════════════════════════════════════════════════════════
 # MAIN
@@ -1057,6 +1099,9 @@ def main():
     print("=" * 60)
     print("\nVEREDICTO del Chapter (extracto):")
     print(chapter_text[-500:] if len(chapter_text) > 500 else chapter_text)
+
+    if pr_enabled():
+        open_pull_request(feature, approved_outputs, checkpoint)
 
 
 if __name__ == "__main__":
