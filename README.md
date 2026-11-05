@@ -82,6 +82,11 @@ Selecciona el proyecto y la funcionalidad. Cada paso ejecuta un mini-Crew de un 
 En la aprobación humana puedes usar `s` para aprobar, `r` para reintentar con feedback,
 o `n` para rechazar y detener el flujo. El checkpoint permite retomar los pasos aprobados.
 
+Con `CREWAI_OPEN_PR=true`, al aprobar todos los pasos un agente (`agents/pr_manager.py`) redacta el PR.
+Tras tu aprobación, `crew/pull_request.py` clona el repo del producto (`GITHUB_OWNER/GITHUB_REPO` o `PR_TARGET_REPO`),
+sube `output/` a una rama `crewai/<feature>-<fecha>` bajo `crewai-output/<feature>/` (o `PR_TARGET_DIR`) y abre el PR con `gh`.
+Si el Chapter emitió `VEREDICTO: RECHAZADO`, el PR se abre como borrador. La URL queda en el checkpoint para no duplicarlo.
+
 Los artefactos se guardan en `output/`:
 
 - `specs/user_story.md`: especificación del arquitecto.
