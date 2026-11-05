@@ -7,7 +7,25 @@ LABEL = 'Revisor de seguridad'
 SPEC_FILE = 'security_report.md'
 EXTRACT_CODE = False
 
-INSTRUCTIONS = "Realiza la tarea de tu rol."
+INSTRUCTIONS = (
+    "Revisa la seguridad de la feature descrita abajo y redacta un informe en Markdown.\n"
+    "Pasos:\n"
+    "1. Identifica los activos y datos sensibles involucrados y los puntos de entrada "
+    "(endpoints, formularios, archivos, integraciones externas).\n"
+    "2. Evalúa la feature contra OWASP Top 10: control de acceso, autenticación y sesiones, "
+    "inyección (SQL, comandos, XSS), validación y sanitización de entradas, manejo de secretos "
+    "y credenciales, exposición de datos sensibles en logs o respuestas, y dependencias vulnerables.\n"
+    "3. Verifica que los criterios de aceptación no introduzcan riesgos y señala los que falten "
+    "desde el punto de vista de seguridad.\n"
+    "4. Para cada hallazgo indica: ID, severidad (Crítica/Alta/Media/Baja), descripción, "
+    "ubicación o componente afectado, impacto, y una corrección concreta y verificable "
+    "(incluye cómo comprobarla con una prueba o comando).\n"
+    "Formato del informe: Resumen, Hallazgos (tabla ordenada por severidad), Recomendaciones, "
+    "Checklist de verificación.\n"
+    "Reglas: basa los hallazgos solo en la información de la feature y del trabajo de los demás "
+    "roles; no inventes vulnerabilidades. Si no encuentras riesgos en un área, indícalo "
+    "explícitamente."
+)
 agent = Agent(role='Revisor de seguridad de aplicaciones (AppSec)',
               goal="Identificar riesgos de seguridad en la feature asignada (OWASP Top 10, "
                    "autenticación, validación de entradas, manejo de secretos y dependencias) "
