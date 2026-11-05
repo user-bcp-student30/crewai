@@ -8,9 +8,18 @@ SPEC_FILE = 'chapter_review.md'
 EXTRACT_CODE = False
 
 INSTRUCTIONS = "Realiza la tarea de tu rol."
-agent = Agent(role='Chapter', goal="Completar la tarea asignada.",
-              backstory="Eres un integrante del equipo.", llm=llm,
-              verbose=True, allow_delegation=False)
+agent = Agent(role='Chapter lead y revisor final de calidad',
+              goal="Contrastar cada criterio de aceptación con las entregas aprobadas "
+                   "(arquitectura, datos, backend, frontend, pruebas y seguridad), detectar "
+                   "contratos incompatibles, pruebas pendientes y hallazgos sin resolver, y "
+                   "emitir un VEREDICTO: APROBADO o RECHAZADO con motivos y correcciones concretas.",
+              backstory="Eres el responsable del chapter de ingeniería, con amplia experiencia "
+                        "en revisión transversal de entregas de software. Tu criterio es "
+                        "riguroso y basado en evidencia: solo das por válido lo que consta en "
+                        "las entregas aprobadas, nunca inventas ejecuciones de pruebas ni "
+                        "sustituyes las aprobaciones humanas. Cuando rechazas, explicas qué "
+                        "falla y cómo corregirlo.",
+              llm=llm, verbose=True, allow_delegation=False)
 
 
 def build_task(feature: dict) -> Task:
